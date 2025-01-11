@@ -1,41 +1,34 @@
-# Stage 1: Build the Vue.js app
-FROM node:18-alpine AS build
+# Dockerfile for Vue.js SPA with NGINX
+# Stage 1: Build
+FROM node:18 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package.json package-lock.json* ./
+# Install dependencies and build the app
+COPY package.json package-lock.json ./
 RUN npm install
-
-# Copy application source code
 COPY . .
-
-# Build the Vue.js app for production
 RUN npm run build
 
-# Stage 2: Serve the app with NGINX
+# Stage 2: Serve with NGINX
 FROM nginx:alpine
 
-# Copy built files from the build stage
+# Copy build output to NGINX's html directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add custom NGINX configuration for SPA (Single Page Application)
-RUN echo 'events { worker_connections 1024; } \
-http { \
-    server { \
-        listen 80; \
-        server_name _; \
-        root /usr/share/nginx/html; \
-        index index.html; \
-        location / { \
-            try_files $uri $uri/ /index.html; \
-        } \
-        error_page 404 /index.html; \
+# Add NGINX configuration for SPA routing
+RUN echo 'server { \
+    listen 80; \
+    server_name _; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
     } \
-}' > /etc/nginx/nginx.conf
+    error_page 404 /index.html; \
+}' > /etc/nginx/conf.d/default.conf
 
-# Expose NGINX port
+# Expose port 80
 EXPOSE 80
 
 # Start NGINX

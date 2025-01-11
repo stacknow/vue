@@ -20,7 +20,7 @@ FROM nginx:alpine
 # Copy built files from the build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add NGINX configuration directly in Dockerfile
+# Add custom NGINX configuration for SPA (Single Page Application)
 RUN echo 'events { worker_connections 1024; } \
 http { \
     server { \
